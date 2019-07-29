@@ -1,0 +1,117 @@
+entrypoints Prog;
+
+Program. 	Prog::= [Cmd] ;
+
+--dichiarazioni
+VarDecl.	Decl ::= "var" [Id] ":" Type ";";
+VarDeclAss.	Decl ::= "var" [Id] ":" Type "=" ExpR ";";
+--array unidimensionale
+ArrDeclSing. 	Decl ::= "var" [Id] ":" Type "=" "[" [ExpR] "]"";" ; -- Type = TypeArray
+--array multidimensionale
+ArrDeclMult. 	Decl ::= "var" [Id] ":" Type "=" "[" [ExpArrayElem] "]"";" ; 
+--ExpR della const non deve contenere nomi di variabili
+ConstDecl.	Decl ::= "const" Id ":" Type "=" ExpR ";" ;
+LabelDecl.	Decl ::= "label" Id ":" ";" ;
+ProcDecl. 	Decl ::= "proc" Id "(" [Param] ")" Cmd ;
+FuncDecl. 	Decl ::= "proc" Id "(" [Param] ")" ":" Type Cmd ;
+
+--parametri e passaggi
+Param.		Param ::= Id ":" Type;
+PassParam.	Param ::= Pass Id ":" Type;
+rules	Pass  ::=  "val"|"ref"|"const";
+
+
+--ExpR
+Range .		ExpR ::= ExpRange ;
+ExpRange . 	ExpRange ::= ExpR ".." ExpR;--range da usare in for array e tuple
+--ArrayElem .	ExpR ::= ExpArrayElem ;
+ExpArrayElem .	ExpArrayElem ::= "[" [ExpR] "]" ;
+
+ExpAdd. 	ExpR ::= ExpR "+" ExpR ;--concatena e somma
+ExpSub. 	ExpR ::= ExpR "-" ExpR ;
+ExpMul. 	ExpR ::= ExpR "*" ExpR ;
+ExpDiv. 	ExpR ::= ExpR "/" ExpR ;
+ExpPot. 	ExpR ::= ExpR "**" ExpR ;
+ExpMod. 	ExpR ::= ExpR "%" ExpR ;
+ExpCast. 	ExpR ::= ExpR ":" Type ;
+ParExp.		ExpR ::= "(" ExpR ")";
+ExpNeg. 	ExpR ::= "-" ExpR ;
+ExpLeft.	ExpR ::= ExpL;
+NameExp.	ExpL ::= Id;
+--per array multidimensionali
+ArrExp.		ExpL ::= ExpL "[" [ExpR] "]";
+ExBasic. 	ExpR ::= Basic;
+
+ExpEqu. 	ExpR ::= ExpR "==" ExpR ;
+ExpLes. 	ExpR ::= ExpR "<" ExpR ;
+ExpLeq. 	ExpR ::= ExpR "<=" ExpR ;
+ExpGre. 	ExpR ::= ExpR ">" ExpR ;
+ExpGrq. 	ExpR ::= ExpR ">=" ExpR ;
+ExpNEq. 	ExpR ::= ExpR "!=" ExpR ;
+
+ExpAnd. 	ExpR ::= ExpR "&&" ExpR ;
+ExpXor. 	ExpR ::= ExpR "^" ExpR ;
+ExpOr.  	ExpR ::= ExpR "||" ExpR ;
+ExpNot. 	ExpR ::= "!" ExpR ;
+
+FunExp.		ExpR ::= Id "(" [ExpR] ")";
+
+Int .       	Basic ::= Integer ;
+Float .     	Basic ::= Double ;
+Char .      	Basic ::= Char ;
+String .    	Basic ::= String ;
+Bool .      	Basic ::= Boolean ;
+BoolTrue .  	Boolean ::= "true" ;
+BoolFalse . 	Boolean ::= "false" ;
+
+--tutti i tipi
+TypeInt . 	Type ::= "int" ;
+TypeFloat . 	Type ::= "float" ;
+TypeChar . 	Type ::= "char" ;
+TypeString . 	Type ::= "string" ;
+TypeBool . 	Type ::= "bool" ;
+TypePointer . 	Type ::= "pointer" Type ; --puntatori
+TypeArray . 	Type ::= "[" [ExpRange] "]" Type ; --Array
+
+--comandi
+CmdSing . 	Cmd ::= CommSing ; --comando singolo
+CmdMult . 	Cmd ::= "{"  [Cmd]   "}" ; --lista tra graffe di comandi
+CmdExpR . 	CommSing ::= ExpR ";" ;
+CmdWLabel .	CommSing ::= Id "::" ;
+CmdIf . 	CommSing ::= "if" "(" ExpR ")" "then" Cmd ; --then obbligatorio
+CmdIfElse . 	CommSing ::= "if" "(" ExpR ")" "then" Cmd "else" Cmd ;
+CmdWhile . 	CommSing ::= "while" "(" ExpR ")" BlockLoop ;
+CmdDoWhile . 	CommSing ::= "repeat" Cmd "until" "(" ExpR ")" ;
+
+--for loop
+CmdFor . 	CommSing ::= "for" Id "in" ExpRange ExpFor BlockLoop ;
+CmdForSimple . 	CommSing ::= "for" Id "in" ExpRange BlockLoop;
+rules 		ExpFor ::=  "by" ExpR |  "#" ExpR |  "#" ExpR "by" ExpR ;
+rules 		BlockLoop ::= Cmd | "do" CommSing ; 
+
+CmdSelect .	CommSing ::= "select" ExpR "{" [When] "}" ;
+CmdSelectOther.	CommSing ::= "select" ExpR "{" [When] "otherwise" Cmd "}" ;
+CmdWhen .	When ::= "when" ExpR BlockLoop ;
+
+CmdAsgn . 	CommSing ::= ExpL "=" ExpR ";";
+CmdDecl . 	CommSing ::= Decl ;
+CmdGoTo . 	CommSing ::= "goto" Id ";";
+CmdReturnFun . 	CommSing ::= "return" ExpR";";
+CmdReturnProc . CommSing ::= "return" ";";
+CmdBreak . 	CommSing ::= "break" ";";
+CmdContinue . 	CommSing ::= "continue" ";" ;
+CmdTryCatch . 	CommSing ::= "try" Cmd "catch" Cmd ;
+
+--separatori
+separator 	Id "," ;
+separator 	Cmd "";
+separator 	ExpR ",";
+separator 	Param "," ;
+separator 	When "" ;
+separator	ExpRange "," ;
+separator 	ExpArrayElem ",";
+--commenti
+comment 	"//";
+comment 	"/*" "*/";
+--token
+token 		Id (letter | '_')(letter | digit | '_')*;
